@@ -6,9 +6,10 @@ Weechat plugin for replacing user defined keywords with specified text.
 Installation and configuration
 ------------------------------
 
-In order to use it, you have to have Weechat with Python plugin support compiled
-in. Than, copy ``replacer.py`` to ``~/.weechat/python/``. You can optionally
-create symbolic link to this script:
+In order to use it, you have to have Weechat with Python plugin support
+compiled in. Than, copy ``replacer.py`` to ``~/.weechat/python/``. You can use
+any of the Python version - both Python2 and Python3 are supported. You can
+optionally create symbolic link to this script:
 
 .. code:: shell-session
 
@@ -34,8 +35,8 @@ Usage
 -----
 
 Abbreviations will be stored as json file ``~/.weechat/replacement_map.json``,
-which role is to simply persist dictionary object on the filesystem. To add some
-replacement words, and text which would those words replaced with:
+which role is to simply persist dictionary object on the filesystem. To add
+some replacement words, and text which would those words replaced with:
 
 .. code::
 

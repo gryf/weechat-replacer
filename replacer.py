@@ -21,13 +21,14 @@ Examples:
 
 import os
 import json
+import sys
 
 import weechat
 
 
 NAME = 'replacer'
 AUTHOR = 'Roman Dobosz <gryf73@gmail.com>'
-VERSION = '1.0'
+VERSION = '1.1'
 LICENSE = 'Apache 2'
 DESC = 'Word replacer for WeeChat'
 COMMAND = 'replacer'
@@ -36,6 +37,18 @@ REPLACE_FILE = os.path.expandvars("$HOME/.weechat/replacement_map.json")
 COLOR_DELIMITERS = weechat.color('chat_delimiters')
 COLOR_NICK = weechat.color('chat_nick')
 COLOR_RESET = weechat.color('reset')
+
+
+def _decode(string):
+    if sys.version_info.major == 2:
+        return string.decode('utf-8')
+    return string
+
+
+def _encode(string):
+    if sys.version_info.major == 2:
+        return string.encode('utf-8')
+    return string
 
 
 class Replacer(object):
@@ -127,8 +140,7 @@ def replace_cmd(replacer_obj, _, weechat_buffer, args):
         for key, value in sorted(replacer_obj.replacement_map.items()):
 
             echo('%(key)s %(color_delimiters)s->%(color_reset)s %(val)s',
-                 weechat_buffer, key=key.encode('utf-8'),
-                 val=value.encode('utf-8'))
+                 weechat_buffer, key=_encode(key), val=_encode(value))
 
         return weechat.WEECHAT_RC_OK
 
@@ -143,18 +155,18 @@ def replace_cmd(replacer_obj, _, weechat_buffer, args):
     if cmd == 'add':
         key = args.split(' ')[1].strip()
         value = ' '.join(args.split(' ')[2:]).strip()
-        replacer_obj.add(key.decode('utf-8'), value.decode('utf-8'))
+        replacer_obj.add(_decode(key), _decode(value))
         echo('added: %(key)s %(color_delimiters)s->%(color_reset)s %(val)s',
              weechat_buffer, 'network', key=key, val=value)
 
     if cmd == 'del':
         key = ' '.join(args.split(' ')[1:]).strip()
-        if not replacer_obj.delete(key.decode('utf-8')):
+        if not replacer_obj.delete(_decode(key)):
             echo('No such keyword in replacement table: %(key)s',
                  weechat_buffer, 'error', key=key)
         else:
             echo('Successfully removed key: %(key)s', weechat_buffer,
-                 'network', key=key.encode('utf-8'))
+                 'network', key=_encode(key))
 
     return weechat.WEECHAT_RC_OK
 
@@ -164,7 +176,7 @@ def completion_cb(replacer_obj, data, completion_item, weechat_buffer,
                   completion):
     """Complete keys from replacement table for add/del command"""
     for key in replacer_obj.replacement_map:
-        weechat.hook_completion_list_add(completion, key.encode('utf-8'), 0,
+        weechat.hook_completion_list_add(completion, _encode(key), 0,
                                          weechat.WEECHAT_LIST_POS_SORT)
     return weechat.WEECHAT_RC_OK
 
@@ -176,7 +188,7 @@ def replace_cb(replacer_obj, data, completion_item, weechat_buffer,
     position = weechat.buffer_get_integer(weechat_buffer, 'input_pos')
 
     input_line = weechat.buffer_get_string(weechat_buffer, 'input')
-    input_line = input_line.decode('utf-8')
+    input_line = _decode(input_line)
 
     if len(input_line) == 0:
         return weechat.WEECHAT_RC_OK
@@ -203,8 +215,7 @@ def replace_cb(replacer_obj, data, completion_item, weechat_buffer,
             new_position = len(new_line)
             new_line += input_line[position:]
 
-            weechat.buffer_set(weechat_buffer, 'input',
-                               new_line.encode('utf-8'))
+            weechat.buffer_set(weechat_buffer, 'input', _encode(new_line))
             weechat.buffer_set(weechat_buffer, 'input_pos', str(new_position))
 
     return weechat.WEECHAT_RC_OK
@@ -223,6 +234,7 @@ def main():
     weechat.hook_command(COMMAND, DESC, "[add <word> <text>|del <word>]",
                          __doc__ % {"command": COMMAND},
                          'add|del %(completion_cb)', 'replace_cmd', '')
+
 
 if __name__ == "__main__":
     main()
