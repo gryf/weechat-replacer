@@ -21,7 +21,6 @@ Examples:
 
 import os
 import json
-import sys
 
 import weechat
 
@@ -40,15 +39,20 @@ COLOR_RESET = weechat.color('reset')
 
 
 def _decode(string):
-    if sys.version_info.major == 2:
+    try:
         return string.decode('utf-8')
-    return string
+    except AttributeError:
+        return string
 
 
 def _encode(string):
-    if sys.version_info.major == 2:
+    try:
+        # Encode only, if we have decode attribute, which is available for
+        # string only on python2
+        string.decode
         return string.encode('utf-8')
-    return string
+    except AttributeError:
+        return string
 
 
 class Replacer(object):
