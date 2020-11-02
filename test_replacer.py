@@ -66,6 +66,9 @@ class Weechat(object):
     def _set_position(self, val):
         self.position = val
 
+    def string_eval_path_home(self, path, pointers, extra_vars, options):
+        return path
+
 
 weechat = Weechat()
 sys.modules['weechat'] = weechat

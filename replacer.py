@@ -27,11 +27,10 @@ import weechat
 
 NAME = 'replacer'
 AUTHOR = 'Roman Dobosz <gryf73@gmail.com>'
-VERSION = '1.1'
+VERSION = '1.2'
 LICENSE = 'Apache 2'
 DESC = 'Word replacer for WeeChat'
 COMMAND = 'replacer'
-REPLACE_FILE = os.path.expandvars("$HOME/.weechat/replacement_map.json")
 
 COLOR_DELIMITERS = weechat.color('chat_delimiters')
 COLOR_NICK = weechat.color('chat_nick')
@@ -67,7 +66,8 @@ class Replacer(object):
         self.replacement_map = {}
         self._path = path
         if not path:
-            self._path = REPLACE_FILE
+            path = '%h/replacement_map.json'
+            self._path = weechat.string_eval_path_home(path, {}, {}, {})
         self._get_replacement_map()
 
     def _get_replacement_map(self):
