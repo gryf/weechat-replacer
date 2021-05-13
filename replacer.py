@@ -27,7 +27,7 @@ import weechat
 
 NAME = 'replacer'
 AUTHOR = 'Roman Dobosz <gryf73@gmail.com>'
-VERSION = '1.2'
+VERSION = '1.3'
 LICENSE = 'Apache 2'
 DESC = 'Word replacer for WeeChat'
 COMMAND = 'replacer'
@@ -61,13 +61,32 @@ class Replacer(object):
     # one, so it also could be global, but globals are bad, mkay?
     self_object = None
 
-    def __init__(self, path=None):
+    def __init__(self):
         """Initialize plugin"""
         self.replacement_map = {}
-        self._path = path
+        self._path = None
+
+        map_file = "replacement_map.json"
+        data_dirs = (weechat.info_get("weechat_data_dir", ""),
+                     weechat.info_get("weechat_config_dir", ""),
+                     weechat.string_eval_path_home("%h", {}, {}, {}))
+
+        for path in data_dirs:
+            if os.path.exists(os.path.join(path, map_file)):
+                self._path = os.path.join(path, map_file)
+                break
+
+        version = weechat.info_get("version_number", "") or 0
+
+        # nothing found. so there is no replacement file. let's assume the
+        # right file path.
         if not path:
-            path = '%h/replacement_map.json'
-            self._path = weechat.string_eval_path_home(path, {}, {}, {})
+            if version < 0x3020000:  # < 3.2.0
+                path = '%h/' + map_file
+                self.path = weechat.string_eval_path_home(path, {}, {}, {})
+            else:
+                self.path = os.path.join(weechat.info_get("weechat_data_dir",
+                                                          ""), map_file)
         self._get_replacement_map()
 
     def _get_replacement_map(self):
