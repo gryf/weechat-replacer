@@ -252,5 +252,73 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(weechat.line, 'quis cursus')
 
 
+class TestLocateWeeHome(unittest.TestCase):
+
+    @mock.patch('os.path.exists')
+    @mock.patch('weechat.string_eval_path_home')
+    @mock.patch('weechat.info_get')
+    def test_locate_replacement_file_data_dir(self, info_get, eval_path_home,
+                                              path_exists):
+        info_get.side_effect = ('foo', 'bar')
+        eval_path_home.side_effect = ('baz', )
+        path_exists.side_effect = (True, )
+
+        result = replacer.Replacer._locate_replacement_file(object)
+
+        self.assertEqual(result, 'foo/replacement_map.json')
+
+    @mock.patch('os.path.exists')
+    @mock.patch('weechat.string_eval_path_home')
+    @mock.patch('weechat.info_get')
+    def test_locate_replacement_file_config_dir(self, info_get, eval_path_home,
+                                                path_exists):
+        info_get.side_effect = ('foo', 'bar')
+        eval_path_home.side_effect = ('baz', )
+        path_exists.side_effect = (False, True)
+
+        result = replacer.Replacer._locate_replacement_file(object)
+
+        self.assertEqual(result, 'bar/replacement_map.json')
+
+    @mock.patch('os.path.exists')
+    @mock.patch('weechat.string_eval_path_home')
+    @mock.patch('weechat.info_get')
+    def test_locate_replacement_file_old_home(self, info_get, eval_path_home,
+                                              path_exists):
+        info_get.side_effect = ('foo', 'bar')
+        eval_path_home.side_effect = ('baz', )
+        path_exists.side_effect = (False, False, True)
+
+        result = replacer.Replacer._locate_replacement_file(object)
+
+        self.assertEqual(result, 'baz/replacement_map.json')
+
+    @mock.patch('os.path.exists')
+    @mock.patch('weechat.string_eval_path_home')
+    @mock.patch('weechat.info_get')
+    def test_locate_replacement_default_home_31(self, info_get, eval_path_home,
+                                                path_exists):
+        info_get.side_effect = ('foo', 'bar', 0x3010000)
+        eval_path_home.side_effect = ('baz', 'old/replacement_map.json')
+        path_exists.side_effect = (False, False, False)
+
+        result = replacer.Replacer._locate_replacement_file(object)
+
+        self.assertEqual(result, 'old/replacement_map.json')
+
+    @mock.patch('os.path.exists')
+    @mock.patch('weechat.string_eval_path_home')
+    @mock.patch('weechat.info_get')
+    def test_locate_replacement_default_home_32(self, info_get, eval_path_home,
+                                                path_exists):
+        info_get.side_effect = ('foo', 'bar', 0x3020000, 'new')
+        eval_path_home.side_effect = ('baz', )
+        path_exists.side_effect = (False, False, False)
+
+        result = replacer.Replacer._locate_replacement_file(object)
+
+        self.assertEqual(result, 'new/replacement_map.json')
+
+
 if __name__ == '__main__':
     unittest.main()

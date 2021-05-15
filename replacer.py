@@ -79,14 +79,13 @@ class Replacer(object):
 
         # nothing found. so there is no replacement file. let's assume the
         # right file path.
-        if not path:
-            version = weechat.info_get("version_number", "") or 0
-            if version < 0x3020000:  # < 3.2.0
-                path = '%h/' + map_file
-                return weechat.string_eval_path_home(path, {}, {}, {})
-            else:
-                return os.path.join(weechat.info_get("weechat_data_dir", ""),
-                                    map_file)
+        version = weechat.info_get("version_number", "") or 0
+        if version < 0x3020000:  # < 3.2.0
+            path = '%h/' + map_file
+            return weechat.string_eval_path_home(path, {}, {}, {})
+        else:
+            return os.path.join(weechat.info_get("weechat_data_dir", ""),
+                                map_file)
 
     def _get_replacement_map(self):
         """Read json file, and assign it to the replacement_map attr"""
