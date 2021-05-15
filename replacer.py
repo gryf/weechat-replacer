@@ -64,8 +64,10 @@ class Replacer(object):
     def __init__(self):
         """Initialize plugin"""
         self.replacement_map = {}
-        self._path = None
+        self._path = self._locate_replacement_file()
+        self._get_replacement_map()
 
+    def _locate_replacement_file(self):
         map_file = "replacement_map.json"
         data_dirs = (weechat.info_get("weechat_data_dir", ""),
                      weechat.info_get("weechat_config_dir", ""),
@@ -73,21 +75,18 @@ class Replacer(object):
 
         for path in data_dirs:
             if os.path.exists(os.path.join(path, map_file)):
-                self._path = os.path.join(path, map_file)
-                break
-
-        version = weechat.info_get("version_number", "") or 0
+                return os.path.join(path, map_file)
 
         # nothing found. so there is no replacement file. let's assume the
         # right file path.
         if not path:
+            version = weechat.info_get("version_number", "") or 0
             if version < 0x3020000:  # < 3.2.0
                 path = '%h/' + map_file
-                self.path = weechat.string_eval_path_home(path, {}, {}, {})
+                return weechat.string_eval_path_home(path, {}, {}, {})
             else:
-                self.path = os.path.join(weechat.info_get("weechat_data_dir",
-                                                          ""), map_file)
-        self._get_replacement_map()
+                return os.path.join(weechat.info_get("weechat_data_dir", ""),
+                                    map_file)
 
     def _get_replacement_map(self):
         """Read json file, and assign it to the replacement_map attr"""

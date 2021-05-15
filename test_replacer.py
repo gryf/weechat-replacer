@@ -4,6 +4,7 @@
 import sys
 import os
 import unittest
+from unittest import mock
 import tempfile
 
 
@@ -69,6 +70,12 @@ class Weechat(object):
     def string_eval_path_home(self, path, pointers, extra_vars, options):
         return path
 
+    def info_get(self, key, args):
+        _map = {'weechat_data_dir': None,
+                'weechat_config_dir': None,
+                'version_number': 0x3020000}
+        return _map.get(key)
+
 
 weechat = Weechat()
 sys.modules['weechat'] = weechat
@@ -78,11 +85,14 @@ import replacer
 
 
 class TestReplacer(unittest.TestCase):
-    def setUp(self):
+
+    @mock.patch('replacer.Replacer._locate_replacement_file')
+    def setUp(self, rfile):
         fd, fname = tempfile.mkstemp()
         os.close(fd)
+        rfile.return_value = fname
         self._path = fname
-        self.repl = replacer.Replacer(self._path)
+        self.repl = replacer.Replacer()
 
     def tearDown(self):
         self.repl = None
@@ -104,6 +114,7 @@ class TestReplacer(unittest.TestCase):
         self.assertTrue(self.repl.delete('foo'))
         self.assertDictEqual(self.repl.replacement_map, {})
 
+
 class TestDummyTests(unittest.TestCase):
     """
     This, somehow stupid test ensures, that process of reading default
@@ -112,15 +123,22 @@ class TestDummyTests(unittest.TestCase):
     def tearDown(self):
         replacer.Replacer.self_object = None
 
-    def test_init(self):
+    @mock.patch('replacer.Replacer._locate_replacement_file')
+    def test_init(self, rfile):
+        rfile.return_value = 'dummy_path'
         repl = replacer.Replacer()
         self.assertIsInstance(repl.replacement_map, dict)
 
-    def test_main(self):
+    @mock.patch('replacer.Replacer._locate_replacement_file')
+    def test_main(self, rfile):
+        rfile.return_value = 'dummy_path'
         replacer.Replacer.self_object = replacer.Replacer()
         replacer.main()
 
-    def test_injector(self):
+    @mock.patch('replacer.Replacer._locate_replacement_file')
+    def test_injector(self, rfile):
+
+        rfile.return_value = 'dummy_path'
 
         def fun(first, *args, **kwargs):
             return first
@@ -132,11 +150,14 @@ class TestDummyTests(unittest.TestCase):
 
 
 class TestFunctions(unittest.TestCase):
-    def setUp(self):
+
+    @mock.patch('replacer.Replacer._locate_replacement_file')
+    def setUp(self, rfile):
         fd, fname = tempfile.mkstemp()
         os.close(fd)
         self._path = fname
-        replacer.Replacer.self_object = replacer.Replacer(self._path)
+        rfile.return_value = fname
+        replacer.Replacer.self_object = replacer.Replacer()
         self.rc = replacer.Replacer
 
     def tearDown(self):
