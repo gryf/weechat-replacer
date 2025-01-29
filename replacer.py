@@ -79,7 +79,7 @@ class Replacer(object):
 
         # nothing found. so there is no replacement file. let's assume the
         # right file path.
-        version = weechat.info_get("version_number", "") or 0
+        version = int(weechat.info_get("version_number", "")) or 0
         if version < 0x3020000:  # < 3.2.0
             path = '%h/' + map_file
             return weechat.string_eval_path_home(path, {}, {}, {})
